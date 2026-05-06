@@ -2,7 +2,7 @@ apiVersion: v2
 name: neohoods-hub-chart
 description: Helm chart for the NeoHoods Hub platform (public site + admin cockpit + client extranet).
 type: application
-version: 0.0.3
+version: 0.0.4
 appVersion: "1.0.0"
 maintainers:
   - name: NeoHoods
