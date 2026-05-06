@@ -61,6 +61,34 @@ spec:
               value: {{ .Values.backend.env.CONTACT_RECIPIENT | quote }}
             - name: CONTACT_FROM
               value: {{ .Values.backend.env.CONTACT_FROM | quote }}
+            - name: S3_ENDPOINT
+              value: {{ .Values.backend.env.S3_ENDPOINT | default "" | quote }}
+            - name: S3_REGION
+              value: {{ .Values.backend.env.S3_REGION | default "eu-west-3" | quote }}
+            - name: S3_BUCKET
+              value: {{ .Values.backend.env.S3_BUCKET | default "neohub" | quote }}
+            {{- if .Values.backend.env.S3_ACCESS_KEY }}
+            - name: S3_ACCESS_KEY
+              {{- if (kindIs "map" .Values.backend.env.S3_ACCESS_KEY) }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.backend.env.S3_ACCESS_KEY.secretKeyRef.name }}
+                  key: {{ .Values.backend.env.S3_ACCESS_KEY.secretKeyRef.key }}
+              {{- else }}
+              value: {{ .Values.backend.env.S3_ACCESS_KEY | quote }}
+              {{- end }}
+            {{- end }}
+            {{- if .Values.backend.env.S3_SECRET_KEY }}
+            - name: S3_SECRET_KEY
+              {{- if (kindIs "map" .Values.backend.env.S3_SECRET_KEY) }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.backend.env.S3_SECRET_KEY.secretKeyRef.name }}
+                  key: {{ .Values.backend.env.S3_SECRET_KEY.secretKeyRef.key }}
+              {{- else }}
+              value: {{ .Values.backend.env.S3_SECRET_KEY | quote }}
+              {{- end }}
+            {{- end }}
             - name: SMTP_HOST
               value: {{ .Values.backend.env.SMTP_HOST | quote }}
             - name: SMTP_PORT
