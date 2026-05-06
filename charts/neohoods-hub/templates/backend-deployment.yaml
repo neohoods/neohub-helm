@@ -61,6 +61,17 @@ spec:
               value: {{ .Values.backend.env.CONTACT_RECIPIENT | quote }}
             - name: CONTACT_FROM
               value: {{ .Values.backend.env.CONTACT_FROM | quote }}
+            {{- if .Values.backend.env.MAILERSEND_API_KEY }}
+            - name: MAILERSEND_API_KEY
+              {{- if (kindIs "map" .Values.backend.env.MAILERSEND_API_KEY) }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.backend.env.MAILERSEND_API_KEY.secretKeyRef.name }}
+                  key: {{ .Values.backend.env.MAILERSEND_API_KEY.secretKeyRef.key }}
+              {{- else }}
+              value: {{ .Values.backend.env.MAILERSEND_API_KEY | quote }}
+              {{- end }}
+            {{- end }}
             - name: S3_ENDPOINT
               value: {{ .Values.backend.env.S3_ENDPOINT | default "" | quote }}
             - name: S3_REGION

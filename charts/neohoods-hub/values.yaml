@@ -24,6 +24,7 @@ backend:
     ADDITIONAL_CORS_ORIGINS: ""
     CONTACT_RECIPIENT: hello@neohoods.com
     CONTACT_FROM: noreply@neohoods.com
+    MAILERSEND_API_KEY: ""
     S3_ENDPOINT: ""
     S3_REGION: eu-west-3
     S3_BUCKET: neohub
