@@ -3,13 +3,12 @@ global:
   domain: hub.neohoods.com
   namespace: neohub
   imagePullSecret: ghcr-secret
-
 backend:
   enabled: true
   replicaCount: 1
   image:
     repository: ghcr.io/neohoods/hub-platform-api
-    tag: 0.0.1-SNAPSHOT
+    tag: 0.0.1
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
@@ -39,13 +38,12 @@ backend:
     limits:
       memory: 1024Mi
       cpu: 1000m
-
 frontend:
   enabled: true
   replicaCount: 1
   image:
     repository: ghcr.io/neohoods/hub-platform-ui
-    tag: 0.0.1-SNAPSHOT
+    tag: 0.0.1
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
@@ -60,7 +58,6 @@ frontend:
     limits:
       memory: 256Mi
       cpu: 250m
-
 postgresql:
   enabled: true
   image:
@@ -88,22 +85,19 @@ postgresql:
       limits:
         memory: 1024Mi
         cpu: 1000m
-
 ingress:
   enabled: true
   className: nginx
   certManagerClusterIssuer: letsencrypt-prod
   secretName: ""
-
 # GitHub App credentials are mounted into the backend deployment as env vars,
 # sourced from a Kubernetes Secret. The Secret can either be provided externally
 # (set existingSecret) or created by this chart (set values below).
 githubApp:
-  existingSecret: ""        # If non-empty, chart will not create the secret; backend reads from existingSecret.
-  appId: ""                 # Numeric GitHub App ID.
-  installationId: ""        # Numeric installation id (the "Install" target in this org).
-  privateKey: ""            # PEM-encoded private key for the GitHub App. Multi-line, will be base64-encoded.
-
+  existingSecret: "" # If non-empty, chart will not create the secret; backend reads from existingSecret.
+  appId: "" # Numeric GitHub App ID.
+  installationId: "" # Numeric installation id (the "Install" target in this org).
+  privateKey: "" # PEM-encoded private key for the GitHub App. Multi-line, will be base64-encoded.
 backup:
   enabled: false
   schedule: "0 3 * * *"
