@@ -3,6 +3,20 @@ entries:
   neohoods-hub-chart:
   - apiVersion: v2
     appVersion: 1.0.0
+    created: "2026-05-06T14:25:55.44306021Z"
+    description: Helm chart for the NeoHoods Hub platform (public site + admin cockpit
+      + client extranet).
+    digest: f7d42e6df866be8f6b7fbdcef74b8a749d1a2c2bc58ca0342d2b191e65ec7d20
+    maintainers:
+    - name: NeoHoods
+      url: https://hub.neohoods.com
+    name: neohoods-hub-chart
+    type: application
+    urls:
+    - https://github.com/neohoods/neohub-helm/releases/download/neohoods-hub-chart-0.0.7/neohoods-hub-chart-0.0.7.tgz
+    version: 0.0.7
+  - apiVersion: v2
+    appVersion: 1.0.0
     created: "2026-05-06T14:05:02.206000651Z"
     description: Helm chart for the NeoHoods Hub platform (public site + admin cockpit
       + client extranet).
@@ -43,4 +57,4 @@ entries:
     urls:
     - https://github.com/neohoods/neohub-helm/releases/download/neohoods-hub-chart-0.0.4/neohoods-hub-chart-0.0.4.tgz
     version: 0.0.4
-generated: "2026-05-06T14:05:02.206018645Z"
+generated: "2026-05-06T14:25:55.443072917Z"
