@@ -49,6 +49,28 @@ spec:
               value: {{ .Values.backend.image.tag | quote }}
             - name: AUTH0_ISSUER_URI
               value: {{ .Values.backend.env.AUTH0_ISSUER_URI | quote }}
+            {{- if .Values.backend.env.AUTH0_CLIENT_ID }}
+            - name: AUTH0_CLIENT_ID
+              {{- if (kindIs "map" .Values.backend.env.AUTH0_CLIENT_ID) }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.backend.env.AUTH0_CLIENT_ID.secretKeyRef.name }}
+                  key: {{ .Values.backend.env.AUTH0_CLIENT_ID.secretKeyRef.key }}
+              {{- else }}
+              value: {{ .Values.backend.env.AUTH0_CLIENT_ID | quote }}
+              {{- end }}
+            {{- end }}
+            {{- if .Values.backend.env.AUTH0_CLIENT_SECRET }}
+            - name: AUTH0_CLIENT_SECRET
+              {{- if (kindIs "map" .Values.backend.env.AUTH0_CLIENT_SECRET) }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.backend.env.AUTH0_CLIENT_SECRET.secretKeyRef.name }}
+                  key: {{ .Values.backend.env.AUTH0_CLIENT_SECRET.secretKeyRef.key }}
+              {{- else }}
+              value: {{ .Values.backend.env.AUTH0_CLIENT_SECRET | quote }}
+              {{- end }}
+            {{- end }}
             - name: AUTH0_AUDIENCE
               value: {{ .Values.backend.env.AUTH0_AUDIENCE | quote }}
             - name: AUTH0_ROLES_CLAIM
@@ -108,6 +130,10 @@ spec:
               value: {{ .Values.backend.env.SMTP_AUTH | quote }}
             - name: SMTP_STARTTLS
               value: {{ .Values.backend.env.SMTP_STARTTLS | quote }}
+            {{- if .Values.backend.env.MANAGEMENT_HEALTH_MAIL_ENABLED }}
+            - name: MANAGEMENT_HEALTH_MAIL_ENABLED
+              value: {{ .Values.backend.env.MANAGEMENT_HEALTH_MAIL_ENABLED | quote }}
+            {{- end }}
             {{- if .Values.backend.env.SMTP_USER }}
             - name: SMTP_USER
               {{- if (kindIs "map" .Values.backend.env.SMTP_USER) }}

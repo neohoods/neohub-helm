@@ -18,6 +18,8 @@ backend:
     SERVER_PORT: 8080
     SPRING_PROFILES_ACTIVE: prod
     AUTH0_ISSUER_URI: https://neohoods.eu.auth0.com/
+    AUTH0_CLIENT_ID: ""
+    AUTH0_CLIENT_SECRET: ""
     AUTH0_AUDIENCE: https://hub.neohoods.com/api
     AUTH0_ROLES_CLAIM: https://hub.neohoods.com/roles
     FRONTEND_URL: https://hub.neohoods.com
