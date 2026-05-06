@@ -9,7 +9,6 @@ jobs:
   release:
     permissions:
       contents: write
-      pages: write
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -22,12 +21,56 @@ jobs:
           git config user.name "$GITHUB_ACTOR"
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
-      - name: Install Helm
-        uses: azure/setup-helm@v4
+      - name: Install yq
+        run: |
+          wget https://github.com/mikefarah/yq/releases/download/v4.44.1/yq_linux_amd64 -O /usr/local/bin/yq
+          chmod +x /usr/local/bin/yq
+
+      - name: Auto bump chart version (patch)
+        id: bump_version
+        run: |
+          CHART_FILE=charts/neohoods-hub/Chart.yaml
+          CURRENT=$(yq e '.version' $CHART_FILE)
+          echo "Current chart version: $CURRENT"
+
+          MAJOR=$(echo $CURRENT | cut -d. -f1)
+          MINOR=$(echo $CURRENT | cut -d. -f2)
+          PATCH=$(echo $CURRENT | cut -d. -f3)
+
+          NEW_VERSION="$MAJOR.$MINOR.$((PATCH+1))"
+          echo "Bumping to $NEW_VERSION"
+
+          yq e -i ".version = \"$NEW_VERSION\"" $CHART_FILE
+
+          git add $CHART_FILE
+          git commit -m "chore(chart): bump neohoods-hub-chart to $NEW_VERSION"
+          git push
+
+          echo "bumped_version=$NEW_VERSION" >> $GITHUB_OUTPUT
 
       - name: Run chart-releaser
-        uses: helm/chart-releaser-action@v1.6.0
-        with:
-          charts_dir: charts
+        id: chart-releaser
+        uses: helm/chart-releaser-action@v1.7.0
         env:
-          CR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+
+      - name: Deploy updated dependency
+        uses: qcastel/github-actions-update-helm@master
+        with:
+          branch-name: main
+
+          git-release-bot-name: "bot-theopenshelf"
+          git-release-bot-email: "bot@theopenshelf.dev"
+
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+          repository: git@github.com:neohoods/neohoods-saas.git
+          file-path: neohoods-hub-dev/Chart.yaml
+
+          yaml-paths: "dependencies[0].version"
+
+          tag: ${{ steps.bump_version.outputs.bumped_version }}
+
+          gpg-enabled: true
+          gpg-key-id: ${{ secrets.GPG_KEY_ID }}
+          gpg-key: ${{ secrets.GPG_KEY }}
