@@ -1,0 +1,115 @@
+global:
+  appName: neohub
+  domain: hub.neohoods.com
+  namespace: neohub
+  imagePullSecret: ghcr-secret
+
+backend:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: ghcr.io/neohoods/hub-platform-api
+    tag: 0.0.1-SNAPSHOT
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 8080
+  env:
+    SERVER_PORT: 8080
+    SPRING_PROFILES_ACTIVE: prod
+    AUTH0_ISSUER_URI: https://neohoods.eu.auth0.com/
+    AUTH0_AUDIENCE: https://hub.neohoods.com/api
+    AUTH0_ROLES_CLAIM: https://hub.neohoods.com/roles
+    FRONTEND_URL: https://hub.neohoods.com
+    ADDITIONAL_CORS_ORIGINS: ""
+    CONTACT_RECIPIENT: hello@neohoods.com
+    CONTACT_FROM: noreply@neohoods.com
+    SMTP_HOST: ""
+    SMTP_PORT: "587"
+    SMTP_AUTH: "true"
+    SMTP_STARTTLS: "true"
+    GITHUB_ORG: neohoods
+    GITHUB_PORTAL_REPO: neoportal-app
+    GITHUB_SAAS_REPO: neohoods-saas
+  resources:
+    requests:
+      memory: 512Mi
+      cpu: 250m
+    limits:
+      memory: 1024Mi
+      cpu: 1000m
+
+frontend:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: ghcr.io/neohoods/hub-platform-ui
+    tag: 0.0.1-SNAPSHOT
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 80
+  env:
+    BRAND_NAME: NeoHoods Hub
+    BRAND_LOGO: /assets/logo/neohoods-hub.svg
+  resources:
+    requests:
+      memory: 64Mi
+      cpu: 50m
+    limits:
+      memory: 256Mi
+      cpu: 250m
+
+postgresql:
+  enabled: true
+  image:
+    repository: postgres
+    tag: "18.1"
+    pullPolicy: IfNotPresent
+  auth:
+    username: neohub
+    database: neohub
+    existingSecret: neohub-postgresql
+    secretKeys:
+      userPasswordKey: postgres-password
+  primary:
+    maxConnections: 200
+    persistence:
+      enabled: true
+      size: 5Gi
+      storageClass: ""
+      retentionPolicy:
+        enabled: true
+    resources:
+      requests:
+        memory: 256Mi
+        cpu: 100m
+      limits:
+        memory: 1024Mi
+        cpu: 1000m
+
+ingress:
+  enabled: true
+  className: nginx
+  certManagerClusterIssuer: letsencrypt-prod
+  secretName: ""
+
+# GitHub App credentials are mounted into the backend deployment as env vars,
+# sourced from a Kubernetes Secret. The Secret can either be provided externally
+# (set existingSecret) or created by this chart (set values below).
+githubApp:
+  existingSecret: ""        # If non-empty, chart will not create the secret; backend reads from existingSecret.
+  appId: ""                 # Numeric GitHub App ID.
+  installationId: ""        # Numeric installation id (the "Install" target in this org).
+  privateKey: ""            # PEM-encoded private key for the GitHub App. Multi-line, will be base64-encoded.
+
+backup:
+  enabled: false
+  schedule: "0 3 * * *"
+  retentionDays: 7
+  s3:
+    bucket: ""
+    region: ""
+    endpoint: ""
+    existingSecret: ""

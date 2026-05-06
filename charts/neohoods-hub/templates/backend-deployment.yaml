@@ -1,0 +1,134 @@
+{{- if .Values.backend.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "neohoods-hub.backendName" . }}
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: {{ include "neohoods-hub.backendName" . }}
+    {{- include "neohoods-hub.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.backend.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "neohoods-hub.backendName" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "neohoods-hub.backendName" . }}
+    spec:
+      {{- if .Values.global.imagePullSecret }}
+      imagePullSecrets:
+        - name: {{ .Values.global.imagePullSecret }}
+      {{- end }}
+      containers:
+        - name: backend
+          image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
+          imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: {{ .Values.backend.env.SPRING_PROFILES_ACTIVE | default "prod" | quote }}
+            - name: SERVER_PORT
+              value: {{ .Values.backend.env.SERVER_PORT | default 8080 | quote }}
+            - name: SERVER_SERVLET_CONTEXT_PATH
+              value: "/api"
+            - name: MANAGEMENT_ENDPOINTS_WEB_BASE_PATH
+              value: "/api/actuator"
+            {{- if .Values.postgresql.enabled }}
+            - name: POSTGRES_URL
+              value: "jdbc:postgresql://{{ include "neohoods-hub.postgresName" . }}.{{ .Values.global.namespace }}.svc.cluster.local:5432/{{ .Values.postgresql.auth.database }}"
+            - name: POSTGRES_USER
+              value: {{ .Values.postgresql.auth.username | quote }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.postgresql.auth.existingSecret }}
+                  key: {{ .Values.postgresql.auth.secretKeys.userPasswordKey }}
+            {{- end }}
+            - name: APP_VERSION
+              value: {{ .Values.backend.image.tag | quote }}
+            - name: AUTH0_ISSUER_URI
+              value: {{ .Values.backend.env.AUTH0_ISSUER_URI | quote }}
+            - name: AUTH0_AUDIENCE
+              value: {{ .Values.backend.env.AUTH0_AUDIENCE | quote }}
+            - name: AUTH0_ROLES_CLAIM
+              value: {{ .Values.backend.env.AUTH0_ROLES_CLAIM | quote }}
+            - name: FRONTEND_URL
+              value: {{ .Values.backend.env.FRONTEND_URL | default (printf "https://%s" .Values.global.domain) | quote }}
+            - name: ADDITIONAL_CORS_ORIGINS
+              value: {{ .Values.backend.env.ADDITIONAL_CORS_ORIGINS | default "" | quote }}
+            - name: CONTACT_RECIPIENT
+              value: {{ .Values.backend.env.CONTACT_RECIPIENT | quote }}
+            - name: CONTACT_FROM
+              value: {{ .Values.backend.env.CONTACT_FROM | quote }}
+            - name: SMTP_HOST
+              value: {{ .Values.backend.env.SMTP_HOST | quote }}
+            - name: SMTP_PORT
+              value: {{ .Values.backend.env.SMTP_PORT | quote }}
+            - name: SMTP_AUTH
+              value: {{ .Values.backend.env.SMTP_AUTH | quote }}
+            - name: SMTP_STARTTLS
+              value: {{ .Values.backend.env.SMTP_STARTTLS | quote }}
+            {{- if .Values.backend.env.SMTP_USER }}
+            - name: SMTP_USER
+              {{- if (kindIs "map" .Values.backend.env.SMTP_USER) }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.backend.env.SMTP_USER.secretKeyRef.name }}
+                  key: {{ .Values.backend.env.SMTP_USER.secretKeyRef.key }}
+              {{- else }}
+              value: {{ .Values.backend.env.SMTP_USER | quote }}
+              {{- end }}
+            {{- end }}
+            {{- if .Values.backend.env.SMTP_PASSWORD }}
+            - name: SMTP_PASSWORD
+              {{- if (kindIs "map" .Values.backend.env.SMTP_PASSWORD) }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.backend.env.SMTP_PASSWORD.secretKeyRef.name }}
+                  key: {{ .Values.backend.env.SMTP_PASSWORD.secretKeyRef.key }}
+              {{- else }}
+              value: {{ .Values.backend.env.SMTP_PASSWORD | quote }}
+              {{- end }}
+            {{- end }}
+            - name: GITHUB_ORG
+              value: {{ .Values.backend.env.GITHUB_ORG | default "neohoods" | quote }}
+            - name: GITHUB_PORTAL_REPO
+              value: {{ .Values.backend.env.GITHUB_PORTAL_REPO | default "neoportal-app" | quote }}
+            - name: GITHUB_SAAS_REPO
+              value: {{ .Values.backend.env.GITHUB_SAAS_REPO | default "neohoods-saas" | quote }}
+            - name: GITHUB_APP_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "neohoods-hub.githubAppSecretName" . }}
+                  key: appId
+            - name: GITHUB_APP_INSTALLATION_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "neohoods-hub.githubAppSecretName" . }}
+                  key: installationId
+            - name: GITHUB_APP_PRIVATE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "neohoods-hub.githubAppSecretName" . }}
+                  key: privateKey
+          ports:
+            - name: http-server
+              containerPort: {{ .Values.backend.env.SERVER_PORT | default 8080 }}
+          livenessProbe:
+            httpGet:
+              path: /api/actuator/health
+              port: http-server
+            initialDelaySeconds: 60
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /api/actuator/health
+              port: http-server
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          {{- with .Values.backend.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+{{- end }}

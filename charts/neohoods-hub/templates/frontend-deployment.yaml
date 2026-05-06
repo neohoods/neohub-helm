@@ -1,0 +1,54 @@
+{{- if .Values.frontend.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "neohoods-hub.frontendName" . }}
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: {{ include "neohoods-hub.frontendName" . }}
+    {{- include "neohoods-hub.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.frontend.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "neohoods-hub.frontendName" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "neohoods-hub.frontendName" . }}
+    spec:
+      {{- if .Values.global.imagePullSecret }}
+      imagePullSecrets:
+        - name: {{ .Values.global.imagePullSecret }}
+      {{- end }}
+      containers:
+        - name: frontend
+          image: "{{ .Values.frontend.image.repository }}:{{ .Values.frontend.image.tag }}"
+          imagePullPolicy: {{ .Values.frontend.image.pullPolicy }}
+          env:
+            - name: BACKEND_URL
+              value: "http://{{ include "neohoods-hub.backendName" . }}.{{ .Values.global.namespace }}.svc.cluster.local"
+            - name: BRAND_NAME
+              value: {{ .Values.frontend.env.BRAND_NAME | quote }}
+            - name: BRAND_LOGO
+              value: {{ .Values.frontend.env.BRAND_LOGO | quote }}
+          ports:
+            - name: http
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          {{- with .Values.frontend.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+{{- end }}

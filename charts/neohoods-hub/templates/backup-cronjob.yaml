@@ -1,0 +1,35 @@
+{{- if .Values.backup.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: hub-{{ .Release.Name }}-pg-backup
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "neohoods-hub.labels" . | nindent 4 }}
+spec:
+  schedule: {{ .Values.backup.schedule | quote }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: pg-backup
+              image: "{{ .Values.postgresql.image.repository }}:{{ .Values.postgresql.image.tag }}"
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -e
+                  ts=$(date +%Y%m%d-%H%M%S)
+                  out="/tmp/neohub-${ts}.dump"
+                  pg_dump -Fc -h {{ include "neohoods-hub.postgresName" . }} -U {{ .Values.postgresql.auth.username }} {{ .Values.postgresql.auth.database }} > "$out"
+                  echo "Backup written to $out ($(du -h "$out" | cut -f1))"
+                  # Future: upload to S3 (.Values.backup.s3) before exit.
+              env:
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .Values.postgresql.auth.existingSecret }}
+                      key: {{ .Values.postgresql.auth.secretKeys.userPasswordKey }}
+{{- end }}
