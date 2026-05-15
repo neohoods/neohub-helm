@@ -32,6 +32,12 @@ spec:
               value: {{ .Values.frontend.env.BRAND_NAME | quote }}
             - name: BRAND_LOGO
               value: {{ .Values.frontend.env.BRAND_LOGO | quote }}
+            - name: UMAMI_ENABLED
+              value: {{ .Values.frontend.env.UMAMI_ENABLED | default "false" | quote }}
+            - name: UMAMI_SCRIPT_URL
+              value: {{ .Values.frontend.env.UMAMI_SCRIPT_URL | default "" | quote }}
+            - name: UMAMI_WEBSITE_ID
+              value: {{ .Values.frontend.env.UMAMI_WEBSITE_ID | default "" | quote }}
           ports:
             - name: http
               containerPort: 80
