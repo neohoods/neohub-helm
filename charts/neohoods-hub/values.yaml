@@ -27,6 +27,9 @@ backend:
     CONTACT_RECIPIENT: hello@neohoods.com
     CONTACT_FROM: noreply@neohoods.com
     MAILERSEND_API_KEY: ""
+    TWENTY_API_URL: https://crm.neohoods.com/graphql
+    TWENTY_API_TOKEN: ""
+    TWENTY_CRM_ENABLED: "true"
     S3_ENDPOINT: ""
     S3_REGION: eu-west-3
     S3_BUCKET: neohub

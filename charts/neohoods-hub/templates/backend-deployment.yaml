@@ -94,6 +94,25 @@ spec:
               value: {{ .Values.backend.env.MAILERSEND_API_KEY | quote }}
               {{- end }}
             {{- end }}
+            {{- if .Values.backend.env.TWENTY_API_URL }}
+            - name: TWENTY_API_URL
+              value: {{ .Values.backend.env.TWENTY_API_URL | quote }}
+            {{- end }}
+            {{- if .Values.backend.env.TWENTY_CRM_ENABLED }}
+            - name: TWENTY_CRM_ENABLED
+              value: {{ .Values.backend.env.TWENTY_CRM_ENABLED | quote }}
+            {{- end }}
+            {{- if .Values.backend.env.TWENTY_API_TOKEN }}
+            - name: TWENTY_API_TOKEN
+              {{- if (kindIs "map" .Values.backend.env.TWENTY_API_TOKEN) }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.backend.env.TWENTY_API_TOKEN.secretKeyRef.name }}
+                  key: {{ .Values.backend.env.TWENTY_API_TOKEN.secretKeyRef.key }}
+              {{- else }}
+              value: {{ .Values.backend.env.TWENTY_API_TOKEN | quote }}
+              {{- end }}
+            {{- end }}
             - name: S3_ENDPOINT
               value: {{ .Values.backend.env.S3_ENDPOINT | default "" | quote }}
             - name: S3_REGION
