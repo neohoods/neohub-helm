@@ -45,9 +45,11 @@ metadata:
   annotations:
     cert-manager.io/cluster-issuer: {{ .Values.ingress.certManagerClusterIssuer }}
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/permanent-redirect: https://{{ .Values.global.domain }}$request_uri
+    # ingress-nginx rejects $request_uri in permanent-redirect on this cluster; apex is enough for SEO.
+    nginx.ingress.kubernetes.io/permanent-redirect: https://{{ .Values.global.domain }}
 spec:
-  ingressClassName: {{ .Values.ingress.className | default "nginx" }}
+  # microk8s controller watches --ingress-class=public; www redirect must use that class.
+  ingressClassName: {{ .Values.ingress.wwwClassName | default "public" }}
   rules:
     - host: {{ .Values.ingress.wwwRedirectHost | quote }}
       http:

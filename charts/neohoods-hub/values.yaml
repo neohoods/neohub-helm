@@ -104,9 +104,10 @@ ingress:
   className: nginx
   certManagerClusterIssuer: letsencrypt-prod
   secretName: ""
-  # Optional apex alias, e.g. www.neohoods.com → https://neohoods.com$request_uri
+  # Optional apex alias, e.g. www.neohoods.com → https://neohoods.com
   wwwRedirectHost: ""
   wwwSecretName: ""
+  wwwClassName: public
 # GitHub App credentials are mounted into the backend deployment as env vars,
 # sourced from a Kubernetes Secret. The Secret can either be provided externally
 # (set existingSecret) or created by this chart (set values below).
